@@ -57,6 +57,7 @@ docs_rst_files = [
   'drvqemu',
   'drvsecret',
   'drvtest',
+  'drvsfvm',
   'drvvbox',
   'drvvirtuozzo',
   'drvvmware',

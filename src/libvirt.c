@@ -57,6 +57,9 @@
 #ifdef WITH_TEST
 # include "test/test_driver.h"
 #endif
+#ifdef WITH_SFVM
+# include "sfvm/sfvm_driver.h"
+#endif
 #ifdef WITH_REMOTE
 # include "remote/remote_driver.h"
 #endif
@@ -247,6 +250,10 @@ virGlobalInit(void)
      */
 #ifdef WITH_TEST
     if (testRegister() == -1)
+        goto error;
+#endif
+#ifdef WITH_SFVM
+    if (sfvmRegister() == -1)
         goto error;
 #endif
 #ifdef WITH_OPENVZ

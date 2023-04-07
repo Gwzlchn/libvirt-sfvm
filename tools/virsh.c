@@ -529,6 +529,9 @@ virshShowVersion(vshControl *ctl G_GNUC_UNUSED)
 #ifdef WITH_TEST
     vshPrint(ctl, " Test");
 #endif
+#ifdef WITH_SFVM
+    vshPrint(ctl, " Sfvm");
+#endif
     vshPrint(ctl, "\n");
 
     vshPrint(ctl, "%s", _(" Networking:"));

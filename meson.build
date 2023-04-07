@@ -1690,6 +1690,10 @@ if not get_option('driver_test').disabled()
   conf.set('WITH_TEST', 1)
 endif
 
+if not get_option('driver_sfvm').disabled()
+  conf.set('WITH_SFVM', 1)
+endif
+
 if not get_option('driver_vbox').disabled() and conf.has('WITH_LIBVIRTD')
   conf.set('WITH_VBOX', 1)
   conf.set_quoted('VBOX_XPCOMC_DIR', get_option('vbox_xpcomc_dir'))
@@ -2168,6 +2172,7 @@ driver_summary = {
   'vz': conf.has('WITH_VZ'),
   'Bhyve': conf.has('WITH_BHYVE'),
   'Test': conf.has('WITH_TEST'),
+  'Sfvm': conf.has('WITH_SFVM'),
   'Remote': conf.has('WITH_REMOTE'),
   'Network': conf.has('WITH_NETWORK'),
   'Libvirtd': conf.has('WITH_LIBVIRTD'),
