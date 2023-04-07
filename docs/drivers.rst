@@ -21,6 +21,7 @@ The hypervisor drivers currently supported by libvirt are:
 -  `OpenVZ <drvopenvz.html>`__
 -  `QEMU/KVM/HVF <drvqemu.html>`__
 -  `Test <drvtest.html>`__ - Used for testing
+-  `FPGA VMM <drvsfvm.html>`__ - Used for testing
 -  `VirtualBox <drvvbox.html>`__
 -  `VMware ESX <drvesx.html>`__
 -  `VMware Workstation/Player <drvvmware.html>`__
