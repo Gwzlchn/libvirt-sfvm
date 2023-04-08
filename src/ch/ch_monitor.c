@@ -860,7 +860,7 @@ virCHMonitorCreateVM(virCHMonitor *mon,
                                 nnicindexes, nicindexes) != 0)
         return -1;
 
-    VIR_INFO("create CH VM json size %ld,  json %s",strlen(payload), payload);
+    VIR_INFO("create CH VM json size %ld: json %s", strlen(payload), payload);
 
     VIR_WITH_OBJECT_LOCK_GUARD(mon) {
         /* reset all options of a libcurl session handle at first */
