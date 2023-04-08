@@ -1351,7 +1351,7 @@ sfvmOpenFromFile(virConnectPtr conn, const char *file)
 }
 
 /* Simultaneous sfvm:///default connections should share the same
- * common state (among other things, this allows sfvming event
+ * common state (among other things, this allows testing event
  * detection in one connection for an action caused in another).  */
 static int
 sfvmOpenDefault(virConnectPtr conn)
@@ -1624,7 +1624,7 @@ sfvmConnectGetSysinfo(virConnectPtr conn G_GNUC_UNUSED,
 static const char *
 sfvmConnectGetType(virConnectPtr conn G_GNUC_UNUSED)
 {
-    return "TEST";
+    return "SFVM";
 }
 
 
