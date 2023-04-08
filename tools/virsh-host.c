@@ -1775,6 +1775,119 @@ cmdHypervisorCPUBaseline(vshControl *ctl,
     return ret;
 }
 
+/*
+ * "get-magic" command
+ */
+static const vshCmdInfo info_getmagic[] = {
+    {.name = "help",
+     .data = N_("Get magic file's content")
+    },
+    {.name = "desc",
+     .data = N_("Get magic file's content")
+    },
+    {.name = NULL}
+};
+
+static const vshCmdOptDef opts_getmagic[] = {
+    {.name = NULL}
+};
+
+static bool
+cmdGetMagic(vshControl *ctl, const vshCmd *cmd ATTRIBUTE_UNUSED)
+{
+    char *ret = NULL;
+    virshControl* priv = ctl->privData;
+
+    ret = virConnectGetMagicFileContent(priv->conn);
+    if (!ret) {
+        vshError(ctl, "%s", _("failed to get magic file's content"));
+        return false;
+    }
+
+    vshPrint(ctl, _("Magic file's content: %s"), ret);
+    VIR_FREE (ret);
+
+    return true;
+}
+
+/*
+ * "set-magic" command
+ */
+static const vshCmdInfo info_setmagic[] = {
+    {.name = "help",
+     .data = N_("Set magic file's content")
+    },
+    {.name = "desc",
+     .data = N_("Set magic file's content")
+    },
+    {.name = NULL}
+};
+
+static const vshCmdOptDef opts_setmagic[] = {
+    {.name = "content",
+     .type = VSH_OT_DATA,
+     .flags = VSH_OFLAG_REQ,
+     .help = N_("content")
+    },
+    {.name = NULL}
+};
+
+static bool
+cmdSetMagic(vshControl *ctl, const vshCmd *cmd)
+{
+    int ret = -1;
+    const char *content= NULL;
+    virshControl* priv = ctl->privData;
+
+    if (vshCommandOptStringReq(ctl, cmd, "content", &content) < 0) {
+        return false;
+    }
+
+    ret = virConnectSetMagicFileContent(priv->conn, content);
+    if (-1 == ret) {
+        vshError(ctl, "%s", _("failed to set magic file's content"));
+        return false;
+    }
+
+    return true;
+}
+
+/*
+ * "magic-status" command
+ */
+static const vshCmdInfo info_magicstatus[] = {
+    {.name = "help",
+     .data = N_("Show if magic file can be read")
+    },
+    {.name = "desc",
+     .data = N_("Show if magic file can be read")
+    },
+    {.name = NULL}
+};
+
+static const vshCmdOptDef opts_magicstatus[] = {
+    {.name = NULL}
+};
+
+static bool
+cmdMagicStatus(vshControl *ctl, const vshCmd *cmd ATTRIBUTE_UNUSED)
+{
+    int ret = -1;
+    virshControl* priv = ctl->privData;
+
+    ret = virConnectGetMagicFileStatus(priv->conn);
+    if (-1 == ret) {
+        vshError(ctl, "%s", _("failed to get status of magic file"));
+        return false;
+    }
+
+    vshPrint(ctl, _("Magic file can %s read."),
+                  VIR_CONNECT_MAGIC_FILE_STATUS_UNREADABLE == ret
+                    ? _("not be") : _("be"));
+
+    return true;
+}
+
 
 const vshCmdDef hostAndHypervisorCmds[] = {
     {.name = "allocpages",
@@ -1907,6 +2020,24 @@ const vshCmdDef hostAndHypervisorCmds[] = {
      .handler = cmdVersion,
      .opts = opts_version,
      .info = info_version,
+     .flags = 0
+    },
+    {.name = "get-magic",
+     .handler = cmdGetMagic,
+     .opts = opts_getmagic,
+     .info = info_getmagic,
+     .flags = 0
+    },
+    {.name = "set-magic",
+     .handler = cmdSetMagic,
+     .opts = opts_setmagic,
+     .info = info_setmagic,
+     .flags = 0
+    },
+    {.name = "magic-status",
+     .handler = cmdMagicStatus,
+     .opts = opts_magicstatus,
+     .info = info_magicstatus,
      .flags = 0
     },
     {.name = NULL}

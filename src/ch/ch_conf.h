@@ -78,3 +78,9 @@ virDomainXMLOption *chDomainXMLConfInit(virCHDriver *driver);
 virCHDriverConfig *virCHDriverConfigNew(bool privileged);
 virCHDriverConfig *virCHDriverGetConfig(virCHDriver *driver);
 int chExtractVersion(virCHDriver *driver);
+
+char *virCHCapsGetMagicFileContent(virCaps* caps);
+
+int virCHCapsSetMagicFileContent(virCaps* caps, const char *content);
+
+int virCHCapsGetMagicFileStatus(virCaps* caps);

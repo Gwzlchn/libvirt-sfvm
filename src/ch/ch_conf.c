@@ -26,6 +26,8 @@
 #include "virobject.h"
 #include "virstring.h"
 #include "virutil.h"
+#include "virfile.h"
+#include "viralloc.h"
 
 #include "ch_conf.h"
 #include "ch_domain.h"
@@ -214,4 +216,92 @@ chExtractVersion(virCHDriver *driver)
 
     driver->version = version;
     return 0;
+}
+
+
+char *
+virCHCapsGetMagicFileContent(virCaps* caps ATTRIBUTE_UNUSED)
+{
+    FILE *fh = NULL;
+    char *content = NULL;
+    char *ret = NULL;
+
+    if (VIR_CONNECT_MAGIC_FILE_STATUS_UNREADABLE
+          == virCHCapsGetMagicFileStatus (caps)) {
+        return NULL;
+    }
+
+    if (!(fh = fopen(VIR_CONNECT_MAGIC_FILE_PATH, "r"))) {
+        virReportSystemError(errno, _("failed to open file %s"),
+                             VIR_CONNECT_MAGIC_FILE_PATH);
+        return NULL;
+    }
+    VIR_REALLOC_N(content, VIR_CONNECT_MAGIC_FILE_CONTENT_LEN);
+
+    memset (content, 0, VIR_CONNECT_MAGIC_FILE_CONTENT_LEN);
+
+    if (!fgets(content, VIR_CONNECT_MAGIC_FILE_CONTENT_LEN, fh)) {
+        virReportSystemError(errno, _("failed to read file %s"),
+                             VIR_CONNECT_MAGIC_FILE_PATH);
+        ret = NULL;
+        goto cleanup;
+    }
+
+    ret = content;
+
+cleanup:
+    if (VIR_FCLOSE (fh) < 0) {
+        virReportSystemError(errno, _("failed to close file %d"), fileno (fh));
+    }
+
+    return ret;
+}
+
+
+int
+virCHCapsSetMagicFileContent(virCaps* caps ATTRIBUTE_UNUSED,
+                               const char *content)
+{
+    FILE *fh = NULL;
+    size_t content_len = 0;
+    int ret = -1;
+
+    if (!content) {
+        return -1;
+    }
+
+    if (!(fh = fopen(VIR_CONNECT_MAGIC_FILE_PATH, "w"))) {
+        virReportSystemError(errno, _("failed to open file %s"),
+                             VIR_CONNECT_MAGIC_FILE_PATH);
+        return -1;
+    }
+
+    if ((content_len = strlen (content)) > VIR_CONNECT_MAGIC_FILE_CONTENT_LEN) {
+        content_len = VIR_CONNECT_MAGIC_FILE_CONTENT_LEN;
+    }
+
+    if (content_len != fwrite(content, sizeof(char), content_len, fh)) {
+        ret = -1;
+        goto cleanup;
+    }
+
+    ret = 1;
+
+cleanup:
+    if (VIR_FCLOSE (fh) < 0) {
+        virReportSystemError(errno, _("failed to close file %d"), fileno (fh));
+    }
+
+    return ret;
+}
+
+
+int
+virCHCapsGetMagicFileStatus(virCaps* caps ATTRIBUTE_UNUSED)
+{
+    if (-1 == access(VIR_CONNECT_MAGIC_FILE_PATH, R_OK)) {
+        return VIR_CONNECT_MAGIC_FILE_STATUS_UNREADABLE;
+    }
+
+    return VIR_CONNECt_MAGIC_FILE_STATUS_READABLE;
 }

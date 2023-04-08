@@ -1016,5 +1016,45 @@ int virNodeAllocPages(virConnectPtr conn,
                       unsigned int cellCount,
                       unsigned int flags);
 
+/**
+ * VIR_CONNECT_MAGIC_FILE_PATH:
+ *
+ * This is the absolute path of file.
+ * 
+ * Since: 9.3.0
+ */
+#define VIR_CONNECT_MAGIC_FILE_PATH ("/var/run/libvirt/magic_file")
+
+/**
+ * VIR_CONNECT_MAGIC_FILE_FORBIDDEN_STR:
+ *
+ * If file's content match this, qemu driver will refused to boot VM
+ * 
+ * Since: 9.3.0
+ */
+#define VIR_CONNECT_MAGIC_FILE_FORBIDDEN_STR ("0xabadcafe")
+
+/**
+ * VIR_CONNECT_MAGIC_FILE_CONTENT_LEN:
+ *
+ * Max length of file.
+ * 
+ * Since: 9.3.0
+ */
+#define VIR_CONNECT_MAGIC_FILE_CONTENT_LEN (32)
+
+/**
+ * virConnectMagicFileStatusFlags:
+ * 
+ * Since: 9.3.0
+ */
+typedef enum {
+    VIR_CONNECT_MAGIC_FILE_STATUS_UNREADABLE = 0, /* if file status is unreadable (Since: 9.3.0) */
+    VIR_CONNECt_MAGIC_FILE_STATUS_READABLE = 1, /* if file status is normal (Since: 9.3.0) */
+} virConnectMagicFileStatusFlags;
+
+char *virConnectGetMagicFileContent(virConnectPtr conn);
+int virConnectSetMagicFileContent(virConnectPtr conn, const char *content);
+int virConnectGetMagicFileStatus(virConnectPtr conn);
 
 #endif /* LIBVIRT_HOST_H */

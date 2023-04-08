@@ -1688,6 +1688,80 @@ chDomainSetNumaParameters(virDomainPtr dom,
     return ret;
 }
 
+static char *
+chConnectGetMagicFileContent(virConnectPtr conn)
+{
+    virCHDriver *driver = conn->privateData;
+    char *ret = NULL;
+    virCaps* caps = NULL;
+
+    if (virConnectGetMagicFileContentEnsureACL (conn) < 0) {
+        return NULL;
+    }
+
+    if (!(caps = virCHDriverGetCapabilities(driver, false))) {
+        goto cleanup;
+    }
+
+    if (!(ret = virCHCapsGetMagicFileContent(caps))) {
+        goto cleanup;
+    }
+
+ cleanup:
+    virObjectUnref(caps);
+    return ret;
+}
+
+
+static int
+chConnectSetMagicFileContent(virConnectPtr conn, const char *content)
+{
+    virCHDriver* driver = conn->privateData;
+    int ret = -1;
+    virCaps* caps = NULL;
+
+    if (virConnectSetMagicFileContentEnsureACL (conn) < 0) {
+        return -1;
+    }
+
+    if (!(caps = virCHDriverGetCapabilities(driver, false))) {
+        goto cleanup;
+    }
+
+    if (-1 == (ret = virCHCapsSetMagicFileContent(caps, content))) {
+        goto cleanup;
+    }
+
+ cleanup:
+    virObjectUnref(caps);
+    return ret;
+}
+
+
+static int
+chConnectGetMagicFileStatus(virConnectPtr conn)
+{
+    virCHDriver* driver = conn->privateData;
+    int ret = -1;
+    virCaps* caps = NULL;
+
+    if (virConnectGetMagicFileStatusEnsureACL (conn) < 0) {
+        return -1;
+    }
+
+    if (!(caps = virCHDriverGetCapabilities(driver, false))) {
+        goto cleanup;
+    }
+
+    if (-1 == (ret = virCHCapsGetMagicFileStatus(caps))) {
+        goto cleanup;
+    }
+
+ cleanup:
+    virObjectUnref(caps);
+    return ret;
+}
+
 /* Function Tables */
 static virHypervisorDriver chHypervisorDriver = {
     .name = "CH",
@@ -1736,6 +1810,9 @@ static virHypervisorDriver chHypervisorDriver = {
     .nodeGetCPUMap = chNodeGetCPUMap,                       /* 8.0.0 */
     .domainSetNumaParameters = chDomainSetNumaParameters,   /* 8.1.0 */
     .domainGetNumaParameters = chDomainGetNumaParameters,   /* 8.1.0 */
+    .connectGetMagicFileContent = chConnectGetMagicFileContent, /* 2.5.0 */
+    .connectSetMagicFileContent = chConnectSetMagicFileContent, /* 2.5.0 */
+    .connectGetMagicFileStatus = chConnectGetMagicFileStatus, /* 2.5.0 */
 };
 
 static virConnectDriver chConnectDriver = {

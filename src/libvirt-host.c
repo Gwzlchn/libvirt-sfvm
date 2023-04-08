@@ -1829,3 +1829,112 @@ virNodeGetSEVInfo(virConnectPtr conn,
     virDispatchError(conn);
     return -1;
 }
+
+
+/**
+ * virConnectGetMagicFileContent:
+ *
+ * @conn: virConnect connection
+ *
+ * Get content of magic file, max length is VIR_CONNECT_MAGIC_FILE_CONTENT_LEN.
+ *
+ * Returns content of file if all succeed or NULL upon any failure.
+ * 
+ * Since: 9.3.0
+ */
+char *
+virConnectGetMagicFileContent(virConnectPtr conn)
+{
+    VIR_DEBUG("conn=%p", conn);
+
+    virResetLastError();
+
+    virCheckConnectReturn(conn, NULL);
+
+    if (conn->driver->connectGetMagicFileContent) {
+        char *ret = conn->driver->connectGetMagicFileContent(conn);
+        if (!ret)
+            goto error;
+        return ret;
+    }
+
+    virReportUnsupportedError();
+
+ error:
+    virDispatchError(conn);
+    return NULL;
+}
+
+
+/**
+ * virConnectSetMagicFileContent:
+ *
+ * @conn: virConnect connection
+ * @content: content to be stored file, accept
+ *           VIR_CONNECT_MAGIC_FILE_CONTENT_LEN charaters at most.
+ *
+ * Set content of magic file, max lenght is VIR_CONNECT_MAGIC_FILE_CONTENT_LEN.
+ *
+ * Returns 0 if all succeed, -1 upon any failure.
+ * 
+ * Since: 9.3.0
+ */
+int
+virConnectSetMagicFileContent(virConnectPtr conn, const char *content)
+{
+    VIR_DEBUG("conn=%p, content=%p", conn, content);
+
+    virResetLastError();
+
+    virCheckConnectReturn(conn, -1);
+    virCheckNonNullArgGoto(content, error);
+
+    if (conn->driver->connectSetMagicFileContent) {
+        int ret = conn->driver->connectSetMagicFileContent(conn, content);
+        if (ret < 0)
+            goto error;
+        return ret;
+    }
+
+    virReportUnsupportedError();
+
+ error:
+    virDispatchError(conn);
+    return -1;
+}
+
+
+/**
+ * virConnectGetMagicFileStatus:
+ *
+ * @conn: virConnect connection
+ *
+ * Get status of magic file.
+ *
+ * Returns VIR_CONNECT_MAGIC_FILE_STATUS_UNREADABLE if file unreadable,
+ *         VIR_CONNECt_MAGIC_FILE_STATUS_READABLE, -1 upon any failure.
+ * 
+ * Since: 9.3.0
+ */
+int
+virConnectGetMagicFileStatus(virConnectPtr conn)
+{
+    VIR_DEBUG("conn=%p", conn);
+
+    virResetLastError();
+
+    virCheckConnectReturn(conn, -1);
+
+    if (conn->driver->connectGetMagicFileStatus) {
+        int ret = conn->driver->connectGetMagicFileStatus(conn);
+        if (ret < 0)
+            goto error;
+        return ret;
+    }
+
+    virReportUnsupportedError();
+
+ error:
+    virDispatchError(conn);
+    return -1;
+}

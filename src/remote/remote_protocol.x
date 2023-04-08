@@ -3935,6 +3935,23 @@ struct remote_domain_fd_associate_args {
     remote_nonnull_string name;
     unsigned int flags;
 };
+
+struct remote_connect_get_magic_file_content_ret {
+    remote_nonnull_string content;
+};
+
+struct remote_connect_set_magic_file_content_args {
+    remote_nonnull_string content;
+};
+
+struct remote_connect_set_magic_file_content_ret {
+    int need_results;
+};
+
+struct remote_connect_get_magic_file_status_ret {
+    int status;
+};
+
 /*----- Protocol. -----*/
 
 /* Define the program number, protocol version and procedure numbers here. */
@@ -6974,5 +6991,26 @@ enum remote_procedure {
      * @generate: none
      * @acl: domain:write
      */
-    REMOTE_PROC_DOMAIN_FD_ASSOCIATE = 443
+    REMOTE_PROC_DOMAIN_FD_ASSOCIATE = 443,
+
+    /**
+     * @generate: both
+     * @priority: high
+     * @acl: connect:read
+     */
+    REMOTE_PROC_CONNECT_GET_MAGIC_FILE_CONTENT = 444,
+
+    /**
+     * @generate: both
+     * @priority: high
+     * @acl: connect:write
+     */
+    REMOTE_PROC_CONNECT_SET_MAGIC_FILE_CONTENT = 445,
+
+    /**
+     * @generate: both
+     * @priority: high
+     * @acl: connect:read
+     */
+    REMOTE_PROC_CONNECT_GET_MAGIC_FILE_STATUS = 446
 };

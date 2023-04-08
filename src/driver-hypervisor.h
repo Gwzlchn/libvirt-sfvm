@@ -1448,8 +1448,17 @@ typedef int
                            int *fds,
                            unsigned int flags);
 
-typedef struct _virHypervisorDriver virHypervisorDriver;
+typedef char *
+(*virDrvConnectGetMagicFileContent)(virConnectPtr conn);
 
+typedef int
+(*virDrvConnectSetMagicFileContent)(virConnectPtr conn, const char *content);
+
+typedef int
+(*virDrvConnectGetMagicFileStatus)(virConnectPtr conn);
+
+
+typedef struct _virHypervisorDriver virHypervisorDriver;
 /**
  * _virHypervisorDriver:
  *
@@ -1720,4 +1729,7 @@ struct _virHypervisorDriver {
     virDrvDomainGetMessages domainGetMessages;
     virDrvDomainStartDirtyRateCalc domainStartDirtyRateCalc;
     virDrvDomainFDAssociate domainFDAssociate;
+    virDrvConnectGetMagicFileContent connectGetMagicFileContent;
+    virDrvConnectSetMagicFileContent connectSetMagicFileContent;
+    virDrvConnectGetMagicFileStatus connectGetMagicFileStatus;
 };
