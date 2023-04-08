@@ -118,9 +118,9 @@ virCHMonitorBuildKernelRelatedJson(virJSONValue *content, virDomainDef *vmdef)
                        _("Kernel image path in this domain is not defined"));
         return -1;
     } else {
-        if (virJSONValueObjectAppendString(kernel, "path", vmdef->os.kernel) < 0)
+        if (virJSONValueObjectAppendString(kernel, "kernel", vmdef->os.kernel) < 0)
             return -1;
-        if (virJSONValueObjectAppend(content, "kernel", &kernel) < 0)
+        if (virJSONValueObjectAppend(content, "payload", &kernel) < 0)
             return -1;
     }
 
@@ -615,6 +615,7 @@ virCHMonitorCurlPerform(CURL *handle)
 {
     CURLcode errorCode;
     long responseCode = 0;
+    curl_easy_setopt(handle, CURLOPT_VERBOSE, 1L);
 
     errorCode = curl_easy_perform(handle);
 
@@ -858,6 +859,8 @@ virCHMonitorCreateVM(virCHMonitor *mon,
     if (virCHMonitorBuildVMJson(mon->vm->def, &payload,
                                 nnicindexes, nicindexes) != 0)
         return -1;
+
+    VIR_INFO("create CH VM json size %ld,  json %s",strlen(payload), payload);
 
     VIR_WITH_OBJECT_LOCK_GUARD(mon) {
         /* reset all options of a libcurl session handle at first */

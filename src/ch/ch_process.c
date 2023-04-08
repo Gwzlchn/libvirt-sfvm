@@ -47,6 +47,7 @@ virCHProcessConnectMonitor(virCHDriver *driver,
     virCHDriverConfig *cfg = virCHDriverGetConfig(driver);
 
     monitor = virCHMonitorNew(vm, cfg->stateDir);
+    VIR_INFO("create CH socket in dir %s", cfg->stateDir);
 
     virObjectUnref(cfg);
     return monitor;
