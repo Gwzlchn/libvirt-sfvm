@@ -1,0 +1,17 @@
+{
+    "python.testing.pytestArgs": [
+        "build"
+    ],
+    "python.testing.unittestEnabled": false,
+    "python.testing.pytestEnabled": true,
+    "mesonbuild.configureOnOpen": true,
+    "files.associations": {
+        "viraccessmanager.h": "c",
+        "config.h": "c",
+        "virsocket.h": "c",
+        "remote_daemon.h": "c",
+        "configmake.h": "c",
+        "virgdbus.h": "c",
+        "libvirt_internal.h": "c"
+    }
+}

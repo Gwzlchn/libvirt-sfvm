@@ -1,0 +1,74 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "In debug hellolibvirt",
+            "cwd": "${workspaceFolder}/build",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/src/virtchd", // Binary to exec
+            "stopAtEntry": false,
+            "environment": [
+                {"name": "LIBVIRT_DEBUG", "value": "1"}
+            ],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "preLaunchTask": "${defaultBuildTask}",
+            "miDebuggerPath": "${workspaceRoot}/gdb"
+        },
+        {
+            "name": "In debug virsh list",
+            "cwd": "${workspaceFolder}/build",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/tools/virsh", // Binary to exec
+             "args": ["-c","ch:///system", "create",  "${workspaceRoot}/tests/chxml2xmlin/basic.xml"], // Arguments passed
+            "stopAtEntry": false,
+            "environment": [
+                {"name": "LIBVIRT_DEBUG", "value": "1"},
+                {"name": "PATH", "value": "${env:Path};${workspaceRoot}/../cloud-hypervisor/target/debug"}
+            ],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "preLaunchTask": "${defaultBuildTask}",
+            "miDebuggerPath": "${workspaceRoot}/gdb"
+        },
+        {
+            "name": "In debug virtchd",
+            "cwd": "${workspaceFolder}/build",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/src/virtchd", // Binary to exec
+            "stopAtEntry": false,
+            "environment": [
+                {"name": "LIBVIRT_DEBUG", "value": "1"},
+            ],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "preLaunchTask": "${defaultBuildTask}",
+            "miDebuggerPath": "${workspaceRoot}/gdb"
+        },
+       
+    ]
+}
