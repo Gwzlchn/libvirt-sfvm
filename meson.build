@@ -1690,8 +1690,46 @@ if not get_option('driver_test').disabled()
   conf.set('WITH_TEST', 1)
 endif
 
-if not get_option('driver_sfvm').disabled()
-  conf.set('WITH_SFVM', 1)
+if not get_option('driver_sfvm').disabled() and host_machine.system() == 'linux' and (host_machine.cpu_family() == 'x86_64' or host_machine.cpu_family() == 'aarch64')
+  use_sfvm = true
+
+  if not conf.has('WITH_LIBVIRTD')
+    use_sfvm = false
+    if get_option('driver_sfvm').enabled()
+      error('libvirtd is required to build FPGA-Hypervisor driver')
+    endif
+  endif
+
+  if not yajl_dep.found()
+    use_sfvm = false
+    if get_option('driver_sfvm').enabled()
+      error('YAJL 2 is required to build FPGA-Hypervisor driver')
+    endif
+  endif
+
+  if not curl_dep.found()
+    use_sfvm = false
+    if get_option('driver_sfvm').enabled()
+      error('curl is required to build FPGA-Hypervisor driver')
+    endif
+  endif
+
+  if use_sfvm
+    conf.set('WITH_SFVM', 1)
+
+    default_sfvm_user = 'root'
+    default_sfvm_group = 'root'
+    sfvm_user = get_option('sfvm_user')
+    if sfvm_user == ''
+      sfvm_user = default_sfvm_user
+    endif
+    sfvm_group = get_option('sfvm_group')
+    if sfvm_group == ''
+      sfvm_group = default_sfvm_group
+    endif
+    conf.set_quoted('SFVM_USER', sfvm_user)
+    conf.set_quoted('SFVM_GROUP', sfvm_group)
+  endif
 endif
 
 if not get_option('driver_vbox').disabled() and conf.has('WITH_LIBVIRTD')

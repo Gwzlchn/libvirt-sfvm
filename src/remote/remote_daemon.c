@@ -170,6 +170,10 @@ static int daemonInitialize(void)
     if (virDriverLoadModule("ch", "chRegister", false) < 0)
         return -1;
 # endif
+# ifdef WITH_SFVM
+    if (virDriverLoadModule("sfvm", "sfvmRegister", false) < 0)
+        return -1;
+# endif
 # ifdef WITH_LXC
     if (virDriverLoadModule("lxc", "lxcRegister", false) < 0)
         return -1;

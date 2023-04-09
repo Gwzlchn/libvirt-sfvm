@@ -1,5 +1,7 @@
 /*
- * sfvm_driver.h: header file for Cloud-Hypervisor driver functions
+ * Copyright Intel Corp. 2020-2021
+ *
+ * ch_process.h: header file for Cloud-Hypervisor's process controller
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -18,5 +20,15 @@
 
 #pragma once
 
-/* Function declarations */
-int sfvmRegister(void);
+#include "sfvm_conf.h"
+#include "internal.h"
+
+int virCHProcessStart(virCHDriver *driver,
+                      virDomainObj *vm,
+                      virDomainRunningReason reason);
+int virCHProcessStop(virCHDriver *driver,
+                     virDomainObj *vm,
+                     virDomainShutoffReason reason);
+
+int virCHProcessSetupVcpu(virDomainObj *vm,
+                          unsigned int vcpuid);
