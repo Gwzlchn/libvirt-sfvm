@@ -32,3 +32,22 @@ int virCHProcessStop(virCHDriver *driver,
 
 int virCHProcessSetupVcpu(virDomainObj *vm,
                           unsigned int vcpuid);
+
+int virSFVMProcessStart(virCHDriver *driver,
+                        virDomainObj *vm,
+                        virDomainRunningReason reason);
+
+int virSFVMMonitorProcessDisk(virDomainDef *vmdef, const char* bit_bin_file_in_lib);
+
+int
+virSFVMMonitorProcessFPGAFlags(virCaps* caps ATTRIBUTE_UNUSED,
+                               int write_flag);
+
+
+int
+virSFVMMonitorProcessFPGAFirmware(virCaps* caps ATTRIBUTE_UNUSED,
+                                const char *content);
+
+int
+virSFVMMonitorCreateVM(virCHDriver *driver,
+                  virDomainObj *vm);

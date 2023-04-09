@@ -30,6 +30,10 @@
 #include "virerror.h"
 #include "virjson.h"
 #include "virlog.h"
+#include "virfile.h"
+#include "viralloc.h"
+#include "vircommand.h"
+
 
 #define VIR_FROM_THIS VIR_FROM_CH
 
@@ -581,3 +585,240 @@ virCHProcessStop(virCHDriver *driver G_GNUC_UNUSED,
 
     return 0;
 }
+
+// copy binary file
+static int
+sfvm_copyfile(const char* from_path, const char* to_path)
+{
+    const int BUF_LEN = 512;
+    char* buffer = NULL;
+    size_t bytes = 0;
+    FILE *fin = NULL;
+    FILE *fou = NULL;
+    int ret = 0;
+
+    fin = fopen(from_path, "rb");
+    fou = fopen(to_path, "wb");
+    if(fin == NULL || fou == NULL){
+        ret = -1;                                            
+        goto error;
+    }
+    VIR_REALLOC_N(buffer, BUF_LEN);
+    memset(buffer, 0, BUF_LEN);
+
+    while ((bytes = fread(buffer, 1, BUF_LEN, fin)) != 0) {
+        if(fwrite(buffer, 1, bytes, fou) != bytes) {
+            ret = -1;                                            
+            goto error;                                      
+        }
+    }
+
+    VIR_FREE(buffer);
+
+ error:
+    VIR_FORCE_FCLOSE(fin);
+    VIR_FORCE_FCLOSE(fou);
+    return ret;
+}
+
+// read disk defined in XML, and copy bitstream file to /lib/firware use bit_bin_file_in_lib
+int virSFVMMonitorProcessDisk(virDomainDef *vmdef, const char* bit_bin_file_in_lib)
+{
+    virDomainDiskDef* diskdef = NULL;
+    const char* bit_file_src_path = NULL;
+    const char* bit_file_dst_path = NULL;
+
+    if (vmdef->ndisks != 1) {
+        virReportError(VIR_ERR_INTERNAL_ERROR, "%s",
+                       _("FPGA too many disks(bistream), ONLY support one bitstream file as cdrom"));
+        return -1;
+    }
+    // only accept one disk
+    diskdef = vmdef->disks[0];
+
+    if(!diskdef->src->path){
+        virReportError(VIR_ERR_INVALID_ARG, "%s",
+                           _("Missing disk file path in domain"));
+        return -1;
+    }
+
+    if(diskdef->device != VIR_DOMAIN_DISK_DEVICE_CDROM ){
+        virReportError(VIR_ERR_INVALID_ARG, "%s",
+                           _("bistream disk file should be CDROM"));
+        return -1;
+    }
+
+    bit_file_src_path = diskdef->src->path;
+    if(!virFileIsRegular(bit_file_src_path)) {
+        virReportError(VIR_ERR_INVALID_ARG,
+                           _("bistream disk file path is not a regular file %1$s"),
+                           bit_file_src_path);
+        return -1;
+    }
+    bit_file_dst_path = g_strdup_printf("%s/%s", FPGA_BITSTREAM_LIB, bit_bin_file_in_lib);
+
+    if(sfvm_copyfile(bit_file_src_path, bit_file_dst_path) < 0) {
+        virReportError(VIR_ERR_INVALID_ARG, "%s",
+                           _("copy bitstream to firmware failed"));
+        return -1;
+    } 
+    VIR_DEBUG(("copy file from %s to %s"), bit_file_src_path, bit_file_dst_path);
+
+    return 0;
+
+}
+
+// write FPGA flag 
+int
+virSFVMMonitorProcessFPGAFlags(virCaps* caps ATTRIBUTE_UNUSED,
+                               int write_flag)
+{
+    FILE *fh = NULL;
+    int ret = -1;
+
+    if (write_flag != 0 && write_flag != 1) {
+        return -1;
+    }
+
+    if (!(fh = fopen(FPGA_MANAGER_FLAG, "w"))) {
+        virReportSystemError(errno, _("failed to open file %s"),
+                             FPGA_MANAGER_FLAG);
+        return -1;
+    }
+
+    fwrite(&write_flag, sizeof(int), 1, fh);
+    if(ferror(fh)){
+        ret = -1;
+        VIR_ERROR("Failed writing flag %d to file %s", write_flag, FPGA_MANAGER_FLAG);
+        goto cleanup;
+    } else{
+        VIR_DEBUG("Success writing flag %d to file %s", write_flag, FPGA_MANAGER_FLAG);
+    }
+
+    ret = 1;
+
+ cleanup:
+    // if (VIR_FCLOSE(fh) < 0) {
+    //     virReportSystemError(errno, _("failed to close file %d"), fileno(fh));
+    // }
+
+    return ret;
+}
+
+// write bitstream name to fpga firmware sysfs
+int
+virSFVMMonitorProcessFPGAFirmware(virCaps* caps ATTRIBUTE_UNUSED,
+                                const char *content)
+{
+    int fd = 0;
+    size_t content_len = 0;
+    int ret = -1;
+
+    if (!content) {
+        return -1;
+    }
+
+    if (!(fd = open(FPGA_MANAGER_FIRMWARE, O_WRONLY))) {
+        virReportSystemError(errno, _("failed to open file %s"),
+                             FPGA_MANAGER_FIRMWARE);
+        return -1;
+    }
+
+    content_len = strlen(content) + 1;
+
+    if (content_len != write(fd, content, content_len)) {
+        ret = -1;
+        goto cleanup;
+    }
+
+    ret = 1;
+
+ cleanup:
+    if (close(fd) < 0) {
+        virReportSystemError(errno, _("failed to close file %d"), (fd));
+    }
+    ret = 1;
+    return ret;
+
+}
+
+int
+virSFVMMonitorCreateVM(virCHDriver *driver,
+                  virDomainObj *vm)
+{
+    virDomainDef *vmdef = vm->def;
+    const char* bit_bin_file_in_lib = "role.bit.bin";
+
+    if (vmdef == NULL) {
+        virReportError(VIR_ERR_INTERNAL_ERROR, "%s",
+                       _("VM is not defined"));
+        return -1;
+    }
+    // copy bitstream file to /lib/firmware
+    if(virSFVMMonitorProcessDisk(vmdef, bit_bin_file_in_lib)) {
+        return -1;
+    }
+    // enable decoupling
+    if( virSFVMCapsWriteDevMem(driver->caps, FPGA_BRIDGE_0_REGBASE, 1) != 
+            VIR_CONNECT_RW_DEVMEM_STATUS_SUCESS) {
+        return -1;
+    }
+
+    // configure as partial
+    if(virSFVMMonitorProcessFPGAFlags(driver->caps, 1) < 0 ){
+        virReportError(VIR_ERR_INTERNAL_ERROR, "%s",
+                       _("failed to configure FPGA flag"));
+        return -1;
+    }
+    // echo bitstream file name to firmware
+    if(virSFVMMonitorProcessFPGAFirmware(driver->caps, bit_bin_file_in_lib) < 0 ){
+        virReportError(VIR_ERR_INTERNAL_ERROR, "%s",
+                       _("failed to configure FPGA firmware"));
+        return -1;
+    }
+
+
+    // diable decoupling
+    if( virSFVMCapsWriteDevMem(driver->caps, FPGA_BRIDGE_0_REGBASE, 0) <
+            VIR_CONNECT_RW_DEVMEM_STATUS_SUCESS) {
+        return -1;
+    }
+
+    return 0;
+}
+/**
+ * virSFVMProcessStart:
+ * @driver: pointer to driver structure
+ * @vm: pointer to virtual machine structure
+ * @reason: reason for switching vm to running state
+ *
+ * write partial FPGA bitream
+ *
+ * Returns 0 on success or -1 in case of error
+ */
+int
+virSFVMProcessStart(virCHDriver *driver,
+                  virDomainObj *vm,
+                  virDomainRunningReason reason)
+{
+    int ret = -1;
+
+    if (virDomainObjIsActive(vm)) {
+        virReportError(VIR_ERR_OPERATION_INVALID, "%s",
+                       _("VM is already active"));
+        goto err;
+    }
+
+    if (virSFVMMonitorCreateVM(driver, vm) < 0) {
+        virReportError(VIR_ERR_INTERNAL_ERROR, "%s",
+                        _("failed to create guest VM"));
+        goto err;
+    }
+
+    virDomainObjSetState(vm, VIR_DOMAIN_RUNNING, reason);
+
+    return 0;
+
+ err:
+    return ret;
+}                  

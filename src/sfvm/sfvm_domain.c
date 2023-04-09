@@ -68,17 +68,17 @@ virCHDomainObjPrivateFree(void *data)
 }
 
 static int
-virCHDomainDefPostParseBasic(virDomainDef *def,
+virCHDomainDefPostParseBasic(virDomainDef *def G_GNUC_UNUSED,
                              void *opaque G_GNUC_UNUSED)
 {
     /* check for emulator and create a default one if needed */
-    if (!def->emulator) {
-        if (!(def->emulator = g_find_program_in_path(CH_CMD))) {
-            virReportError(VIR_ERR_CONFIG_UNSUPPORTED, "%s",
-                           _("No emulator found for cloud-hypervisor"));
-            return 1;
-        }
-    }
+    // if (!def->emulator) {
+    //     if (!(def->emulator = g_find_program_in_path(CH_CMD))) {
+    //         virReportError(VIR_ERR_CONFIG_UNSUPPORTED, "%s",
+    //                        _("No emulator found for cloud-hypervisor"));
+    //         return 1;
+    //     }
+    // }
 
     return 0;
 }

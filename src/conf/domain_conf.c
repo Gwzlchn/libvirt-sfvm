@@ -137,6 +137,7 @@ VIR_ENUM_IMPL(virDomainOS,
               "exe",
               "uml",
               "xenpvh",
+              "fpga",
 );
 
 VIR_ENUM_IMPL(virDomainHyperVMode,
@@ -17382,6 +17383,7 @@ virDomainDefParseBootOptions(virDomainDef *def,
         break;
 
     case VIR_DOMAIN_OSTYPE_LINUX:
+    case VIR_DOMAIN_OSTYPE_FPGA:
     case VIR_DOMAIN_OSTYPE_LAST:
         break;
     }

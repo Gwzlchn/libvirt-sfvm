@@ -21,6 +21,7 @@
 #include <config.h>
 #include <fcntl.h>
 #include <sys/mman.h>
+#include <dirent.h>
 
 #include "configmake.h"
 #include "vircommand.h"
@@ -68,10 +69,10 @@ virCaps *virCHDriverCapsInit(void)
     if (virCapabilitiesInitCaches(caps) < 0)
         return NULL;
 
-    guest = virCapabilitiesAddGuest(caps, VIR_DOMAIN_OSTYPE_HVM,
+    guest = virCapabilitiesAddGuest(caps, VIR_DOMAIN_OSTYPE_FPGA,
                                     caps->host.arch, NULL, NULL, 0, NULL);
 
-    virCapabilitiesAddGuestDomain(guest, VIR_DOMAIN_VIRT_KVM,
+    virCapabilitiesAddGuestDomain(guest, VIR_DOMAIN_VIRT_SFVM,
                                   NULL, NULL, 0, NULL);
     return g_steal_pointer(&caps);
 }
@@ -217,6 +218,37 @@ chExtractVersion(virCHDriver *driver)
     }
 
     driver->version = version;
+    return 0;
+}
+
+int
+sfvmExtractFPGARoleCnt(virCHDriver *driver)
+{
+    int role_cnt = 0;
+    DIR *dir = NULL;
+    struct dirent *entry;
+    const char * region_start = "region";
+
+    dir = opendir(FPGA_REGION_SYSFS);
+    if (!dir) {
+        virReportError(VIR_ERR_INTERNAL_ERROR,
+                       _("Failed to open dir '%s'"), FPGA_REGION_SYSFS);
+        goto cleanup;
+    }
+    VIR_DEBUG("Dir: %s opened", FPGA_REGION_SYSFS);
+    while((entry = readdir(dir)) != NULL){
+        size_t dlen = strlen(entry->d_name);
+        if(dlen >= strlen(region_start) && g_str_has_prefix(entry->d_name, region_start) ){
+            role_cnt++;
+        }
+        VIR_DEBUG("cur path in fpga_region %s/%s, cnt reigon count %d", 
+        FPGA_REGION_SYSFS ,entry->d_name, role_cnt);
+    }
+
+    closedir(dir);
+ cleanup:
+    dir = NULL;
+    driver->role_cnt = role_cnt;
     return 0;
 }
 

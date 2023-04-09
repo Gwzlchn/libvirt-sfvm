@@ -26,6 +26,16 @@
 #define CH_DRIVER_NAME "CH"
 #define CH_CMD "cloud-hypervisor"
 
+#define FPGA_REGION_SYSFS "/sys/class/fpga_region"
+#define FPGA_MANAGER_SYSFS "/sys/class/fpga_manager"
+#define FPGA_MANAGER_FLAG "/sys/class/fpga_manager/fpga0/flags"
+#define FPGA_MANAGER_FIRMWARE "/sys/class/fpga_manager/fpga0/firmware"
+#define FPGA_BRIDGE_SYSFS "/sys/class/fpga_bridge"
+#define FPGA_BITSTREAM_LIB "/lib/firmware"
+
+#define FPGA_BRIDGE_0_REGBASE 0xb1010000
+
+
 typedef struct _virCHDriver virCHDriver;
 
 typedef struct _virCHDriverConfig virCHDriverConfig;
@@ -69,6 +79,10 @@ struct _virCHDriver
 
     /* pid file FD, ensures two copies of the driver can't use the same root */
     int lockFD;
+
+    // the role count in FPGA shell
+    int role_cnt;
+
 };
 
 virCaps *virCHDriverCapsInit(void);
@@ -88,3 +102,5 @@ int virCHCapsGetMagicFileStatus(virCaps* caps);
 char *virSFVMCapsReadDevMem(virCaps* caps, unsigned long long mem_addr);
 
 int virSFVMCapsWriteDevMem(virCaps* caps, unsigned long long mem_addr, u_int32_t write_val);
+
+int sfvmExtractFPGARoleCnt(virCHDriver *driver);

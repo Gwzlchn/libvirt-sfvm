@@ -176,7 +176,7 @@ static char *chConnectGetCapabilities(virConnectPtr conn)
 }
 
 /**
- * chDomainCreateXML:
+ * sfvmDomainCreateXML:
  * @conn: pointer to connection
  * @xml: XML definition of domain
  * @flags: bitwise-OR of supported virDomainCreateFlags
@@ -186,7 +186,7 @@ static char *chConnectGetCapabilities(virConnectPtr conn)
  * Returns a new domain object or NULL in case of failure.
  */
 static virDomainPtr
-chDomainCreateXML(virConnectPtr conn,
+sfvmDomainCreateXML(virConnectPtr conn,
                   const char *xml,
                   unsigned int flags)
 {
@@ -220,7 +220,7 @@ chDomainCreateXML(virConnectPtr conn,
     if (virDomainObjBeginJob(vm, VIR_JOB_MODIFY) < 0)
         goto cleanup;
 
-    if (virCHProcessStart(driver, vm, VIR_DOMAIN_RUNNING_BOOTED) < 0)
+    if (virSFVMProcessStart(driver, vm, VIR_DOMAIN_RUNNING_BOOTED) < 0)
         goto endjob;
 
     dom = virGetDomain(conn, vm->def->name, vm->def->uuid, vm->def->id);
@@ -237,7 +237,7 @@ chDomainCreateXML(virConnectPtr conn,
 }
 
 static int
-chDomainCreateWithFlags(virDomainPtr dom, unsigned int flags)
+sfvmDomainCreateWithFlags(virDomainPtr dom, unsigned int flags)
 {
     virCHDriver *driver = dom->conn->privateData;
     virDomainObj *vm;
@@ -254,7 +254,7 @@ chDomainCreateWithFlags(virDomainPtr dom, unsigned int flags)
     if (virDomainObjBeginJob(vm, VIR_JOB_MODIFY) < 0)
         goto cleanup;
 
-    ret = virCHProcessStart(driver, vm, VIR_DOMAIN_RUNNING_BOOTED);
+    ret = virSFVMProcessStart(driver, vm, VIR_DOMAIN_RUNNING_BOOTED);
 
     virDomainObjEndJob(vm);
 
@@ -264,9 +264,9 @@ chDomainCreateWithFlags(virDomainPtr dom, unsigned int flags)
 }
 
 static int
-chDomainCreate(virDomainPtr dom)
+sfvmDomainCreate(virDomainPtr dom)
 {
-    return chDomainCreateWithFlags(dom, 0);
+    return sfvmDomainCreateWithFlags(dom, 0);
 }
 
 static virDomainPtr
@@ -866,7 +866,7 @@ static int chStateInitialize(bool privileged,
                              void *opaque G_GNUC_UNUSED)
 {
     int ret = VIR_DRV_STATE_INIT_ERROR;
-    // int rv;
+    int role_cnt;
 
     if (root != NULL) {
         virReportError(VIR_ERR_INVALID_ARG, "%s",
@@ -893,11 +893,11 @@ static int chStateInitialize(bool privileged,
     if (!(ch_driver->config = virCHDriverConfigNew(privileged)))
         goto cleanup;
 
-    // if ((rv = chExtractVersion(ch_driver)) < 0) {
-    //     if (rv == -2)
-    //         ret = VIR_DRV_STATE_INIT_SKIPPED;
-    //     goto cleanup;
-    // }
+    if ((role_cnt = sfvmExtractFPGARoleCnt(ch_driver)) < 0) {
+        if (role_cnt == 0)
+            ret = VIR_DRV_STATE_INIT_SKIPPED;
+        goto cleanup;
+    }
 
     ch_driver->privileged = privileged;
     ret = VIR_DRV_STATE_INIT_COMPLETE;
@@ -1810,6 +1810,17 @@ sfvmConnectWriteDevMem(virConnectPtr conn, unsigned long long mem_addr, u_int32_
     return ret;
 }
 
+/**
+ * return FPGA role regions count 
+*/
+static int sfvmConnectGetMaxVcpus(virConnectPtr conn,
+                                  const char *type G_GNUC_UNUSED)
+{
+    virCHDriver* driver = conn->privateData;
+    return driver->role_cnt;
+}
+
+
 
 /* Function Tables */
 static virHypervisorDriver chHypervisorDriver = {
@@ -1825,9 +1836,9 @@ static virHypervisorDriver chHypervisorDriver = {
     .connectListDomains = chConnectListDomains,             /* 7.5.0 */
     .connectGetCapabilities = chConnectGetCapabilities,     /* 7.5.0 */
     .connectSupportsFeature = chConnectSupportsFeature,     /* 8.1.0 */
-    .domainCreateXML = chDomainCreateXML,                   /* 7.5.0 */
-    .domainCreate = chDomainCreate,                         /* 7.5.0 */
-    .domainCreateWithFlags = chDomainCreateWithFlags,       /* 7.5.0 */
+    .domainCreateXML = sfvmDomainCreateXML,                   /* 7.5.0 */
+    .domainCreate = sfvmDomainCreate,                         /* 7.5.0 */
+    .domainCreateWithFlags = sfvmDomainCreateWithFlags,       /* 7.5.0 */
     .domainShutdown = chDomainShutdown,                     /* 7.5.0 */
     .domainShutdownFlags = chDomainShutdownFlags,           /* 7.5.0 */
     .domainReboot = chDomainReboot,                         /* 7.5.0 */
@@ -1864,6 +1875,8 @@ static virHypervisorDriver chHypervisorDriver = {
     .connectGetMagicFileStatus = chConnectGetMagicFileStatus, /* 9.3.0 */
     .connectReadDevMem = sfvmConnectReadDevMem, /* 9.3.0 */
     .connectWriteDevMem = sfvmConnectWriteDevMem, /* 9.3.0 */
+    .connectGetMaxVcpus = sfvmConnectGetMaxVcpus, /* 0.6.3 */
+
 };
 
 static virConnectDriver chConnectDriver = {
