@@ -227,7 +227,7 @@ virCHCapsGetMagicFileContent(virCaps* caps ATTRIBUTE_UNUSED)
     char *ret = NULL;
 
     if (VIR_CONNECT_MAGIC_FILE_STATUS_UNREADABLE
-          == virCHCapsGetMagicFileStatus (caps)) {
+          == virCHCapsGetMagicFileStatus(caps)) {
         return NULL;
     }
 
@@ -238,7 +238,7 @@ virCHCapsGetMagicFileContent(virCaps* caps ATTRIBUTE_UNUSED)
     }
     VIR_REALLOC_N(content, VIR_CONNECT_MAGIC_FILE_CONTENT_LEN);
 
-    memset (content, 0, VIR_CONNECT_MAGIC_FILE_CONTENT_LEN);
+    memset(content, 0, VIR_CONNECT_MAGIC_FILE_CONTENT_LEN);
 
     if (!fgets(content, VIR_CONNECT_MAGIC_FILE_CONTENT_LEN, fh)) {
         virReportSystemError(errno, _("failed to read file %s"),
@@ -249,9 +249,9 @@ virCHCapsGetMagicFileContent(virCaps* caps ATTRIBUTE_UNUSED)
 
     ret = content;
 
-cleanup:
-    if (VIR_FCLOSE (fh) < 0) {
-        virReportSystemError(errno, _("failed to close file %d"), fileno (fh));
+ cleanup:
+    if (VIR_FCLOSE(fh) < 0) {
+        virReportSystemError(errno, _("failed to close file %d"), fileno(fh));
     }
 
     return ret;
@@ -276,7 +276,7 @@ virCHCapsSetMagicFileContent(virCaps* caps ATTRIBUTE_UNUSED,
         return -1;
     }
 
-    if ((content_len = strlen (content)) > VIR_CONNECT_MAGIC_FILE_CONTENT_LEN) {
+    if ((content_len = strlen(content)) > VIR_CONNECT_MAGIC_FILE_CONTENT_LEN) {
         content_len = VIR_CONNECT_MAGIC_FILE_CONTENT_LEN;
     }
 
@@ -287,9 +287,9 @@ virCHCapsSetMagicFileContent(virCaps* caps ATTRIBUTE_UNUSED,
 
     ret = 1;
 
-cleanup:
-    if (VIR_FCLOSE (fh) < 0) {
-        virReportSystemError(errno, _("failed to close file %d"), fileno (fh));
+ cleanup:
+    if (VIR_FCLOSE(fh) < 0) {
+        virReportSystemError(errno, _("failed to close file %d"), fileno(fh));
     }
 
     return ret;

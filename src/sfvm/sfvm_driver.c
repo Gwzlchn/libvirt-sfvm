@@ -1695,7 +1695,7 @@ chConnectGetMagicFileContent(virConnectPtr conn)
     char *ret = NULL;
     virCaps* caps = NULL;
 
-    if (virConnectGetMagicFileContentEnsureACL (conn) < 0) {
+    if (virConnectGetMagicFileContentEnsureACL(conn) < 0) {
         return NULL;
     }
 
@@ -1720,7 +1720,7 @@ chConnectSetMagicFileContent(virConnectPtr conn, const char *content)
     int ret = -1;
     virCaps* caps = NULL;
 
-    if (virConnectSetMagicFileContentEnsureACL (conn) < 0) {
+    if (virConnectSetMagicFileContentEnsureACL(conn) < 0) {
         return -1;
     }
 
@@ -1745,7 +1745,7 @@ chConnectGetMagicFileStatus(virConnectPtr conn)
     int ret = -1;
     virCaps* caps = NULL;
 
-    if (virConnectGetMagicFileStatusEnsureACL (conn) < 0) {
+    if (virConnectGetMagicFileStatusEnsureACL(conn) < 0) {
         return -1;
     }
 

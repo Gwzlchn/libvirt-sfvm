@@ -1839,7 +1839,6 @@ virNodeGetSEVInfo(virConnectPtr conn,
  * Get content of magic file, max length is VIR_CONNECT_MAGIC_FILE_CONTENT_LEN.
  *
  * Returns content of file if all succeed or NULL upon any failure.
- * 
  * Since: 9.3.0
  */
 char *
@@ -1876,7 +1875,6 @@ virConnectGetMagicFileContent(virConnectPtr conn)
  * Set content of magic file, max lenght is VIR_CONNECT_MAGIC_FILE_CONTENT_LEN.
  *
  * Returns 0 if all succeed, -1 upon any failure.
- * 
  * Since: 9.3.0
  */
 int
@@ -1913,7 +1911,6 @@ virConnectSetMagicFileContent(virConnectPtr conn, const char *content)
  *
  * Returns VIR_CONNECT_MAGIC_FILE_STATUS_UNREADABLE if file unreadable,
  *         VIR_CONNECt_MAGIC_FILE_STATUS_READABLE, -1 upon any failure.
- * 
  * Since: 9.3.0
  */
 int

@@ -1805,7 +1805,7 @@ cmdGetMagic(vshControl *ctl, const vshCmd *cmd ATTRIBUTE_UNUSED)
     }
 
     vshPrint(ctl, _("Magic file's content: %s"), ret);
-    VIR_FREE (ret);
+    VIR_FREE(ret);
 
     return true;
 }
@@ -1836,7 +1836,7 @@ static bool
 cmdSetMagic(vshControl *ctl, const vshCmd *cmd)
 {
     int ret = -1;
-    const char *content= NULL;
+    const char *content = NULL;
     virshControl* priv = ctl->privData;
 
     if (vshCommandOptStringReq(ctl, cmd, "content", &content) < 0) {
