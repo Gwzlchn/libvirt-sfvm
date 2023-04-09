@@ -1916,7 +1916,7 @@ cmdReadDevMem(vshControl *ctl, const vshCmd *cmd ATTRIBUTE_UNUSED)
     char* ret = NULL;
     unsigned long long read_addr = 0;
     virshControl* priv = ctl->privData;
-    
+
     if (vshCommandOptULongLongWrap(ctl, cmd, "mem_addr", &read_addr) < 0) {
         return false;
     }
@@ -1966,7 +1966,7 @@ cmdWriteDevMem(vshControl *ctl, const vshCmd *cmd)
     unsigned long long write_addr = 0;
     unsigned int write_val = 0;
     virshControl* priv = ctl->privData;
-    
+
     if (vshCommandOptULongLongWrap(ctl, cmd, "mem_addr", &write_addr) < 0) {
         return false;
     }

@@ -1983,7 +1983,7 @@ virConnectReadDevMem(virConnectPtr conn, unsigned long long mem_addr)
  * Returns write memory status
  * Since: 9.3.0
  */
-int 
+int
 virConnectWriteDevMem(virConnectPtr conn, unsigned long long mem_addr, u_int32_t write_val)
 {
     VIR_DEBUG("conn=%p, write_addr=%lld, write_val=%d", conn, mem_addr, write_val);

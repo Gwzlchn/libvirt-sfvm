@@ -1460,7 +1460,7 @@ typedef int
 typedef char *
 (*virDrvConnectReadDevMem)(virConnectPtr conn, unsigned long long mem_addr);
 
-typedef int 
+typedef int
 (*virDrvConnectWriteDevMem)(virConnectPtr conn, unsigned long long mem_addr, u_int32_t write_val);
 
 

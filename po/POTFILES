@@ -243,7 +243,11 @@ src/storage_file/storage_file_probe.c
 src/storage_file/storage_source.c
 src/storage_file/storage_source_backingstore.c
 src/test/test_driver.c
+src/sfvm/sfvm_conf.c
+src/sfvm/sfvm_domain.c
 src/sfvm/sfvm_driver.c
+src/sfvm/sfvm_monitor.c
+src/sfvm/sfvm_process.c
 src/util/iohelper.c
 src/util/viracpi.c
 src/util/viralloc.c
