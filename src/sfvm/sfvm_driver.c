@@ -866,7 +866,7 @@ static int chStateInitialize(bool privileged,
                              void *opaque G_GNUC_UNUSED)
 {
     int ret = VIR_DRV_STATE_INIT_ERROR;
-    int rv;
+    // int rv;
 
     if (root != NULL) {
         virReportError(VIR_ERR_INVALID_ARG, "%s",
@@ -893,11 +893,11 @@ static int chStateInitialize(bool privileged,
     if (!(ch_driver->config = virCHDriverConfigNew(privileged)))
         goto cleanup;
 
-    if ((rv = chExtractVersion(ch_driver)) < 0) {
-        if (rv == -2)
-            ret = VIR_DRV_STATE_INIT_SKIPPED;
-        goto cleanup;
-    }
+    // if ((rv = chExtractVersion(ch_driver)) < 0) {
+    //     if (rv == -2)
+    //         ret = VIR_DRV_STATE_INIT_SKIPPED;
+    //     goto cleanup;
+    // }
 
     ch_driver->privileged = privileged;
     ret = VIR_DRV_STATE_INIT_COMPLETE;

@@ -1986,7 +1986,7 @@ virConnectReadDevMem(virConnectPtr conn, unsigned long long mem_addr)
 int
 virConnectWriteDevMem(virConnectPtr conn, unsigned long long mem_addr, u_int32_t write_val)
 {
-    VIR_DEBUG("conn=%p, write_addr=%lld, write_val=%d", conn, mem_addr, write_val);
+    VIR_DEBUG("conn=%p, write_addr=0x%llX, write_val=%d", conn, mem_addr, write_val);
 
     virResetLastError();
 

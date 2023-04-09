@@ -1,7 +1,7 @@
 /*
  * Copyright Intel Corp. 2020-2021
  *
- * ch_conf.c: functions for Cloud-Hypervisor configuration
+ * sfvm_conf.c: functions for FPGA-Hypervisor configuration
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -315,7 +315,6 @@ char *virSFVMCapsReadDevMem(virCaps* caps ATTRIBUTE_UNUSED, unsigned long long m
     unsigned page_size = 0, mapped_size = 0, offset_in_page = 0;
     unsigned int ret_val = 0;
     char *ret_str = NULL;
-    int ret_str_buf_len = 32;
 
     if (!(fd = open("/dev/mem", (O_RDWR|O_SYNC)))) {
         VIR_ERROR(_("Failed to open /dev/mem"));
@@ -342,9 +341,7 @@ char *virSFVMCapsReadDevMem(virCaps* caps ATTRIBUTE_UNUSED, unsigned long long m
 
     virt_addr = (char*)map_base + offset_in_page;
     ret_val = *(volatile unsigned int *)virt_addr;
-    VIR_REALLOC_N(ret_str, ret_str_buf_len);
-    memset(ret_str, 0, ret_str_buf_len);
-    g_snprintf(ret_str, ret_val, "0x%X", ret_str_buf_len);
+    ret_str = g_strdup_printf("0x%X", ret_val);
     VIR_DEBUG("read phy memory 0x%llx, mapped addr %p , content 0x%x, ret_str %s", mem_addr, virt_addr, ret_val, ret_str);
 
  cleanup:
@@ -364,6 +361,7 @@ virSFVMCapsWriteDevMem(virCaps* caps ATTRIBUTE_UNUSED,
     void *map_base = NULL, *virt_addr = NULL;
     unsigned page_size = 0, mapped_size = 0, offset_in_page = 0;
     int ret = 0;
+    unsigned int afterwrite_val = 0;
 
     if (!(fd = open("/dev/mem", (O_RDWR|O_SYNC)))) {
         VIR_ERROR(_("failed to open /dev/mem"));
@@ -390,8 +388,13 @@ virSFVMCapsWriteDevMem(virCaps* caps ATTRIBUTE_UNUSED,
     }
 
     virt_addr = (char*)map_base + offset_in_page;
-    *(volatile u_int32_t*)virt_addr = write_val;
+    *(unsigned int*)virt_addr = write_val;
+    afterwrite_val = *(volatile unsigned int *)virt_addr;
+
     ret = VIR_CONNECT_RW_DEVMEM_STATUS_SUCESS;
+    VIR_DEBUG("write phy memory 0x%llx, mapped addr %p , content 0x%x, afterwrite 0x%x", 
+            mem_addr, virt_addr, write_val, afterwrite_val);
+
 
  cleanup:
     if (VIR_CLOSE(fd) < 0) {
