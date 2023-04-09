@@ -1935,3 +1935,74 @@ virConnectGetMagicFileStatus(virConnectPtr conn)
     virDispatchError(conn);
     return -1;
 }
+
+/**
+ * virConnectReadDevMem:
+ *
+ * @conn: virConnect connection
+ * @mem_addr: physical memory address
+ *
+ * Read a physical memory address using /dev/mem
+ *
+ * Returns 32bits data in string
+ * Since: 9.3.0
+ */
+char *
+virConnectReadDevMem(virConnectPtr conn, unsigned long long mem_addr)
+{
+    VIR_DEBUG("conn=%p, read_addr=0x%llX", conn, mem_addr);
+
+    virResetLastError();
+
+    virCheckConnectReturn(conn, NULL);
+    virCheckNonNullArgGoto((void *)mem_addr, error);
+
+    if (conn->driver->connectReadDevMem) {
+        char *ret = conn->driver->connectReadDevMem(conn, mem_addr);
+        if (ret == NULL)
+            goto error;
+        return ret;
+    }
+
+    virReportUnsupportedError();
+
+ error:
+    virDispatchError(conn);
+    return NULL;
+}
+
+/**
+ * virConnectWriteDevMem:
+ *
+ * @conn: virConnect connection
+ * @mem_addr: physical memory address
+ * @write_val: write value to physical memory
+ *
+ * Write a physical memory address 32bits data
+ *
+ * Returns write memory status
+ * Since: 9.3.0
+ */
+int 
+virConnectWriteDevMem(virConnectPtr conn, unsigned long long mem_addr, u_int32_t write_val)
+{
+    VIR_DEBUG("conn=%p, write_addr=%lld, write_val=%d", conn, mem_addr, write_val);
+
+    virResetLastError();
+
+    virCheckConnectReturn(conn, -1);
+    virCheckNonNullArgGoto((void *)mem_addr, error);
+
+    if (conn->driver->connectWriteDevMem) {
+        int ret = conn->driver->connectWriteDevMem(conn, mem_addr, write_val);
+        if (ret < 0)
+            goto error;
+        return ret;
+    }
+
+    virReportUnsupportedError();
+
+ error:
+    virDispatchError(conn);
+    return -1;
+}

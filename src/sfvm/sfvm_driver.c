@@ -1762,9 +1762,58 @@ chConnectGetMagicFileStatus(virConnectPtr conn)
     return ret;
 }
 
+static char *
+sfvmConnectReadDevMem(virConnectPtr conn, unsigned long long mem_addr)
+{
+    virCHDriver* driver = conn->privateData;
+    char *ret = NULL;
+    virCaps* caps = NULL;
+
+    if (virConnectReadDevMemEnsureACL(conn) < 0) {
+        return NULL;
+    }
+
+    if (!(caps = virCHDriverGetCapabilities(driver, false))) {
+        goto cleanup;
+    }
+
+    if (!(ret = virSFVMCapsReadDevMem(caps, mem_addr))) {
+        goto cleanup;
+    }
+
+ cleanup:
+    virObjectUnref(caps);
+    return ret;
+}
+
+static int
+sfvmConnectWriteDevMem(virConnectPtr conn, unsigned long long mem_addr, u_int32_t write_val)
+{
+    virCHDriver* driver = conn->privateData;
+    int ret = -1;
+    virCaps* caps = NULL;
+
+    if (virConnectWriteDevMemEnsureACL(conn) < 0) {
+        return -1;
+    }
+
+    if (!(caps = virCHDriverGetCapabilities(driver, false))) {
+        goto cleanup;
+    }
+
+    if (-1 == (ret = virSFVMCapsWriteDevMem(caps, mem_addr, write_val))) {
+        goto cleanup;
+    }
+
+ cleanup:
+    virObjectUnref(caps);
+    return ret;
+}
+
+
 /* Function Tables */
 static virHypervisorDriver chHypervisorDriver = {
-    .name = "CH",
+    .name = "SFVM",
     .connectURIProbe = chConnectURIProbe,
     .connectOpen = chConnectOpen,                           /* 7.5.0 */
     .connectClose = chConnectClose,                         /* 7.5.0 */
@@ -1810,9 +1859,11 @@ static virHypervisorDriver chHypervisorDriver = {
     .nodeGetCPUMap = chNodeGetCPUMap,                       /* 8.0.0 */
     .domainSetNumaParameters = chDomainSetNumaParameters,   /* 8.1.0 */
     .domainGetNumaParameters = chDomainGetNumaParameters,   /* 8.1.0 */
-    .connectGetMagicFileContent = chConnectGetMagicFileContent, /* 2.5.0 */
-    .connectSetMagicFileContent = chConnectSetMagicFileContent, /* 2.5.0 */
-    .connectGetMagicFileStatus = chConnectGetMagicFileStatus, /* 2.5.0 */
+    .connectGetMagicFileContent = chConnectGetMagicFileContent, /* 9.3.0 */
+    .connectSetMagicFileContent = chConnectSetMagicFileContent, /* 9.3.0 */
+    .connectGetMagicFileStatus = chConnectGetMagicFileStatus, /* 9.3.0 */
+    .connectReadDevMem = sfvmConnectReadDevMem, /* 9.3.0 */
+    .connectWriteDevMem = sfvmConnectWriteDevMem, /* 9.3.0 */
 };
 
 static virConnectDriver chConnectDriver = {

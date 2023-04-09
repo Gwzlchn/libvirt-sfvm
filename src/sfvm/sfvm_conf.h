@@ -84,3 +84,7 @@ char *virCHCapsGetMagicFileContent(virCaps* caps);
 int virCHCapsSetMagicFileContent(virCaps* caps, const char *content);
 
 int virCHCapsGetMagicFileStatus(virCaps* caps);
+
+char *virSFVMCapsReadDevMem(virCaps* caps, unsigned long long mem_addr);
+
+int virSFVMCapsWriteDevMem(virCaps* caps, unsigned long long mem_addr, u_int32_t write_val);

@@ -19,6 +19,8 @@
  */
 
 #include <config.h>
+#include <fcntl.h>
+#include <sys/mman.h>
 
 #include "configmake.h"
 #include "vircommand.h"
@@ -304,4 +306,98 @@ virCHCapsGetMagicFileStatus(virCaps* caps ATTRIBUTE_UNUSED)
     }
 
     return VIR_CONNECt_MAGIC_FILE_STATUS_READABLE;
+}
+
+char *virSFVMCapsReadDevMem(virCaps* caps ATTRIBUTE_UNUSED, unsigned long long mem_addr)
+{
+    int fd = 0;
+    void *map_base = NULL, *virt_addr = NULL;
+    unsigned page_size = 0, mapped_size = 0, offset_in_page = 0;
+    u_int32_t ret_val = 0;
+    char *ret_str = NULL;
+    int ret_str_buf_len = 32;
+
+    if (!(fd = open("/dev/mem",(O_RDWR | O_SYNC)))) {
+        virReportSystemError(errno, _("failed to open %s"), "/dev/mem");
+        return VIR_CONNECT_RW_DEVMEM_STATUS_FAILED;
+    }
+    mapped_size = page_size = getpagesize(); 
+	offset_in_page = (unsigned)mem_addr & (page_size - 1);
+	if (offset_in_page + 32 > page_size) {
+		/* This access spans pages.
+		 * Must map two pages to make it possible: */
+		mapped_size *= 2;
+	}
+    map_base = mmap(NULL,
+			mapped_size,
+			(PROT_READ | PROT_WRITE),
+			MAP_SHARED,
+			fd,
+			mem_addr & ~(off_t)(page_size - 1));
+    if (!map_base) {
+        virReportSystemError(errno, _("failed to mmap /dev/mem %d"),
+                             fd);
+        goto cleanup;
+    }
+    
+    virt_addr = (char*)map_base + offset_in_page;
+    ret_val =  *(volatile u_int32_t*)virt_addr ;
+    VIR_REALLOC_N(ret_str, ret_str_buf_len);
+    memset (ret_str, 0, ret_str_buf_len);
+    sprintf(ret_str, "0x%x", ret_val);
+    VIR_DEBUG("read phy memory 0x%llx, mapped addr %p , content 0x%x, ret_str %s", mem_addr, virt_addr, ret_val, ret_str);
+
+cleanup:
+    if (close (fd) < 0) {
+        virReportSystemError(errno, _("failed to close file %d"), fd);
+    }
+
+    return ret_str;
+}
+
+int 
+virSFVMCapsWriteDevMem(virCaps* caps ATTRIBUTE_UNUSED, 
+                        unsigned long long mem_addr, 
+                        u_int32_t write_val)
+{
+    int fd = 0;
+    void *map_base = NULL, *virt_addr = NULL;
+    unsigned page_size = 0, mapped_size = 0, offset_in_page = 0;
+    int ret = 0;
+
+    if (!(fd = open("/dev/mem",(O_RDWR | O_SYNC)))) {
+        virReportSystemError(errno, _("failed to open %s"), "/dev/mem");
+        return VIR_CONNECT_RW_DEVMEM_STATUS_FAILED;
+    }
+    mapped_size = page_size = getpagesize(); 
+	offset_in_page = (unsigned)mem_addr & (page_size - 1);
+	if (offset_in_page + 32 > page_size) {
+		/* This access spans pages.
+		 * Must map two pages to make it possible: */
+		mapped_size *= 2;
+	}
+    map_base = mmap(NULL,
+			mapped_size,
+			(PROT_READ | PROT_WRITE),
+			MAP_SHARED,
+			fd,
+			mem_addr & ~(off_t)(page_size - 1));
+    if (!map_base) {
+        virReportSystemError(errno, _("failed to mmap /dev/mem %d"),
+                             fd);
+        ret = VIR_CONNECT_RW_DEVMEM_STATUS_FAILED;
+        goto cleanup;
+    }
+
+    virt_addr = (char*)map_base + offset_in_page;
+    *(volatile u_int32_t*)virt_addr = write_val;
+    ret = VIR_CONNECT_RW_DEVMEM_STATUS_SUCESS;
+
+cleanup:
+    if (close (fd) < 0) {
+        virReportSystemError(errno, _("failed to close file %d"), fd);
+    }
+
+    return ret;
+
 }

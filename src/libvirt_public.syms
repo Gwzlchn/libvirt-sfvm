@@ -937,6 +937,8 @@ LIBVIRT_9.3.0 {
         virConnectGetMagicFileContent;
         virConnectSetMagicFileContent;
         virConnectGetMagicFileStatus;
+        virConnectReadDevMem;
+        virConnectWriteDevMem;
 } LIBVIRT_9.0.0;
 
 # .... define new API here using predicted next version number ....

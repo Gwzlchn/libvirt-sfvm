@@ -469,8 +469,6 @@ virCHProcessStart(virCHDriver *driver,
     g_autoptr(virCHDriverConfig) cfg = virCHDriverGetConfig(priv->driver);
     g_autofree int *nicindexes = NULL;
     size_t nnicindexes = 0;
-    virCaps* caps = NULL;
-    char *magic = NULL;
 
     if (virDomainObjIsActive(vm)) {
         virReportError(VIR_ERR_OPERATION_INVALID, "%s",
@@ -537,18 +535,6 @@ virCHProcessStart(virCHDriver *driver,
 
     virCHProcessUpdateInfo(vm);
     virDomainObjSetState(vm, VIR_DOMAIN_RUNNING, reason);
-
-    if (!(caps = virCHDriverGetCapabilities(driver, false))) {
-        goto cleanup;
-    }
-
-    if (!(magic = virCHCapsGetMagicFileContent(caps))) {
-        goto cleanup;
-    }
-
-    if (STREQ(magic, VIR_CONNECT_MAGIC_FILE_FORBIDDEN_STR)) {
-        goto cleanup;
-    }
 
     return 0;
 

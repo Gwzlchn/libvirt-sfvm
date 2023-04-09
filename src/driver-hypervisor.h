@@ -1457,6 +1457,13 @@ typedef int
 typedef int
 (*virDrvConnectGetMagicFileStatus)(virConnectPtr conn);
 
+typedef char *
+(*virDrvConnectReadDevMem)(virConnectPtr conn, unsigned long long mem_addr);
+
+typedef int 
+(*virDrvConnectWriteDevMem)(virConnectPtr conn, unsigned long long mem_addr, u_int32_t write_val);
+
+
 
 typedef struct _virHypervisorDriver virHypervisorDriver;
 /**
@@ -1732,4 +1739,6 @@ struct _virHypervisorDriver {
     virDrvConnectGetMagicFileContent connectGetMagicFileContent;
     virDrvConnectSetMagicFileContent connectSetMagicFileContent;
     virDrvConnectGetMagicFileStatus connectGetMagicFileStatus;
+    virDrvConnectReadDevMem connectReadDevMem;
+    virDrvConnectWriteDevMem connectWriteDevMem;
 };

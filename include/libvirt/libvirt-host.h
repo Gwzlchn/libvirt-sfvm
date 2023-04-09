@@ -1053,4 +1053,16 @@ char *virConnectGetMagicFileContent(virConnectPtr conn);
 int virConnectSetMagicFileContent(virConnectPtr conn, const char *content);
 int virConnectGetMagicFileStatus(virConnectPtr conn);
 
+/**
+ * virConnectRWDevMemStatus:
+ * Since: 9.3.0
+ */
+typedef enum {
+    VIR_CONNECT_RW_DEVMEM_STATUS_FAILED = 0, /* if phsical memory is unreadable (Since: 9.3.0) */
+    VIR_CONNECT_RW_DEVMEM_STATUS_SUCESS = 1, /* if phsical memory read write is normal (Since: 9.3.0) */
+} virConnectRWDevMemStatus;
+
+char *virConnectReadDevMem(virConnectPtr conn, unsigned long long mem_addr);
+int virConnectWriteDevMem(virConnectPtr conn, unsigned long long mem_addr, u_int32_t write_val);
+
 #endif /* LIBVIRT_HOST_H */

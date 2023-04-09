@@ -8129,6 +8129,8 @@ static virHypervisorDriver hypervisor_driver = {
     .connectGetMagicFileContent = remoteConnectGetMagicFileContent, /* 9.3.0 */
     .connectSetMagicFileContent = remoteConnectSetMagicFileContent, /* 9.3.0 */
     .connectGetMagicFileStatus = remoteConnectGetMagicFileStatus, /* 9.3.0 */
+    .connectReadDevMem = remoteConnectReadDevMem, /* 9.3.0 */
+    .connectWriteDevMem = remoteConnectWriteDevMem, /* 9.3.0 */
 };
 
 static virNetworkDriver network_driver = {

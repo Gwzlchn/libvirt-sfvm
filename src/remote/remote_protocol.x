@@ -3952,6 +3952,24 @@ struct remote_connect_get_magic_file_status_ret {
     int status;
 };
 
+struct remote_connect_read_dev_mem_args {
+    unsigned hyper mem_addr;
+};
+
+struct remote_connect_read_dev_mem_ret {
+    remote_nonnull_string read_val;
+};
+
+struct remote_connect_write_dev_mem_args {
+    unsigned hyper mem_addr;
+    unsigned int write_val;
+};
+
+struct remote_connect_write_dev_mem_ret {
+    int need_results;
+};
+
+
 /*----- Protocol. -----*/
 
 /* Define the program number, protocol version and procedure numbers here. */
@@ -7012,5 +7030,19 @@ enum remote_procedure {
      * @priority: high
      * @acl: connect:read
      */
-    REMOTE_PROC_CONNECT_GET_MAGIC_FILE_STATUS = 446
+    REMOTE_PROC_CONNECT_GET_MAGIC_FILE_STATUS = 446,
+
+    /**
+     * @generate: both
+     * @priority: high
+     * @acl: connect:read
+     */
+     REMOTE_PROC_CONNECT_READ_DEV_MEM = 447,
+
+    /**
+     * @generate: both
+     * @priority: high
+     * @acl: connect:write
+     */
+     REMOTE_PROC_CONNECT_WRITE_DEV_MEM = 448
 };

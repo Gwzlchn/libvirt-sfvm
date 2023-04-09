@@ -1888,6 +1888,102 @@ cmdMagicStatus(vshControl *ctl, const vshCmd *cmd ATTRIBUTE_UNUSED)
     return true;
 }
 
+/*
+ * "read-devmem" command
+ */
+static const vshCmdInfo info_read_devmem[] = {
+    {.name = "help",
+     .data = N_("Read physical memory 32bits data")
+    },
+    {.name = "desc",
+     .data = N_("Read physical memory 32bits data")
+    },
+    {.name = NULL}
+};
+
+static const vshCmdOptDef opts_read_devmem[] = {
+    {.name = "mem_addr",
+     .type = VSH_OT_INT,
+     .flags = VSH_OFLAG_REQ,
+     .help = N_("mem_addr")
+    },
+    {.name = NULL}
+};
+
+static bool
+cmdReadDevMem(vshControl *ctl, const vshCmd *cmd ATTRIBUTE_UNUSED)
+{
+    char* ret = NULL;
+    unsigned long long read_addr = 0;
+    virshControl* priv = ctl->privData;
+    
+    if (vshCommandOptULongLongWrap(ctl, cmd, "mem_addr", &read_addr) < 0) {
+        return false;
+    }
+
+    ret = virConnectReadDevMem(priv->conn, read_addr);
+    if (!ret) {
+        vshError(ctl, "%s", _("failed to read physical memory's content"));
+        return false;
+    }
+
+    vshPrint(ctl, _("physical memory 0x%0llX content: %s\n"), read_addr, ret);
+
+    return true;
+}
+
+/*
+ * "write-devmem" command
+ */
+static const vshCmdInfo info_write_devmem[] = {
+    {.name = "help",
+     .data = N_("Write physical memory 32bits data")
+    },
+    {.name = "desc",
+     .data = N_("Write physical memory 32bits data")
+    },
+    {.name = NULL}
+};
+
+static const vshCmdOptDef opts_write_devmem[] = {
+    {.name = "mem_addr",
+     .type = VSH_OT_INT,
+     .flags = VSH_OFLAG_REQ,
+     .help = N_("mem_addr")
+    },
+    {.name = "write_val",
+     .type = VSH_OT_INT,
+     .flags = VSH_OFLAG_REQ,
+     .help = N_("mem_addr")
+    },
+    {.name = NULL}
+};
+
+static bool
+cmdWriteDevMem(vshControl *ctl, const vshCmd *cmd)
+{
+    u_int32_t ret = 0;
+    unsigned long long write_addr = 0;
+    unsigned int write_val = 0;
+    virshControl* priv = ctl->privData;
+    
+    if (vshCommandOptULongLongWrap(ctl, cmd, "mem_addr", &write_addr) < 0) {
+        return false;
+    }
+
+    if (vshCommandOptUIntWrap(ctl, cmd, "write_val", &write_val) < 0) {
+        return false;
+    }
+
+    ret = virConnectWriteDevMem(priv->conn, write_addr, write_val);
+    if (-1 == ret) {
+        vshError(ctl, "%s", _("failed to write physical memory's content"));
+        return false;
+    }
+
+    return true;
+}
+
 
 const vshCmdDef hostAndHypervisorCmds[] = {
     {.name = "allocpages",
@@ -2038,6 +2134,18 @@ const vshCmdDef hostAndHypervisorCmds[] = {
      .handler = cmdMagicStatus,
      .opts = opts_magicstatus,
      .info = info_magicstatus,
+     .flags = 0
+    },
+    {.name = "read-devmem",
+     .handler = cmdReadDevMem,
+     .opts = opts_read_devmem,
+     .info = info_read_devmem,
+     .flags = 0
+    },
+    {.name = "write-devmem",
+     .handler = cmdWriteDevMem,
+     .opts = opts_write_devmem,
+     .info = info_write_devmem,
      .flags = 0
     },
     {.name = NULL}
