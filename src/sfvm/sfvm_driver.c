@@ -1811,7 +1811,7 @@ sfvmConnectWriteDevMem(virConnectPtr conn, unsigned long long mem_addr, u_int32_
 }
 
 /**
- * return FPGA role regions count 
+ * return FPGA role regions count
 */
 static int sfvmConnectGetMaxVcpus(virConnectPtr conn,
                                   const char *type G_GNUC_UNUSED)

@@ -225,29 +225,28 @@ int
 sfvmExtractFPGARoleCnt(virCHDriver *driver)
 {
     int role_cnt = 0;
-    DIR *dir = NULL;
+    int direrr = 0;
+    g_autoptr(DIR) dir = NULL;
     struct dirent *entry;
     const char * region_start = "region";
 
-    dir = opendir(FPGA_REGION_SYSFS);
-    if (!dir) {
+    if (virDirOpenIfExists(&dir, FPGA_REGION_SYSFS) < 0) {
         virReportError(VIR_ERR_INTERNAL_ERROR,
                        _("Failed to open dir '%s'"), FPGA_REGION_SYSFS);
         goto cleanup;
+        return -1;
     }
     VIR_DEBUG("Dir: %s opened", FPGA_REGION_SYSFS);
-    while((entry = readdir(dir)) != NULL){
+    while (dir && (direrr = virDirRead(dir, &entry, FPGA_REGION_SYSFS)) > 0) {
         size_t dlen = strlen(entry->d_name);
-        if(dlen >= strlen(region_start) && g_str_has_prefix(entry->d_name, region_start) ){
+        if (dlen >= strlen(region_start) && g_str_has_prefix(entry->d_name, region_start)) {
             role_cnt++;
         }
-        VIR_DEBUG("cur path in fpga_region %s/%s, cnt reigon count %d", 
-        FPGA_REGION_SYSFS ,entry->d_name, role_cnt);
+        VIR_DEBUG("cur path in fpga_region %s/%s, cnt reigon count %d",
+        FPGA_REGION_SYSFS, entry->d_name, role_cnt);
     }
 
-    closedir(dir);
  cleanup:
-    dir = NULL;
     driver->role_cnt = role_cnt;
     return 0;
 }
@@ -424,7 +423,7 @@ virSFVMCapsWriteDevMem(virCaps* caps ATTRIBUTE_UNUSED,
     afterwrite_val = *(volatile unsigned int *)virt_addr;
 
     ret = VIR_CONNECT_RW_DEVMEM_STATUS_SUCESS;
-    VIR_DEBUG("write phy memory 0x%llx, mapped addr %p , content 0x%x, afterwrite 0x%x", 
+    VIR_DEBUG("write phy memory 0x%llx, mapped addr %p , content 0x%x, afterwrite 0x%x",
             mem_addr, virt_addr, write_val, afterwrite_val);
 
 

@@ -599,17 +599,17 @@ sfvm_copyfile(const char* from_path, const char* to_path)
 
     fin = fopen(from_path, "rb");
     fou = fopen(to_path, "wb");
-    if(fin == NULL || fou == NULL){
-        ret = -1;                                            
+    if (fin == NULL || fou == NULL) {
+        ret = -1;
         goto error;
     }
     VIR_REALLOC_N(buffer, BUF_LEN);
     memset(buffer, 0, BUF_LEN);
 
     while ((bytes = fread(buffer, 1, BUF_LEN, fin)) != 0) {
-        if(fwrite(buffer, 1, bytes, fou) != bytes) {
-            ret = -1;                                            
-            goto error;                                      
+        if (fwrite(buffer, 1, bytes, fou) != bytes) {
+            ret = -1;
+            goto error;
         }
     }
 
@@ -636,20 +636,20 @@ int virSFVMMonitorProcessDisk(virDomainDef *vmdef, const char* bit_bin_file_in_l
     // only accept one disk
     diskdef = vmdef->disks[0];
 
-    if(!diskdef->src->path){
+    if (!diskdef->src->path) {
         virReportError(VIR_ERR_INVALID_ARG, "%s",
                            _("Missing disk file path in domain"));
         return -1;
     }
 
-    if(diskdef->device != VIR_DOMAIN_DISK_DEVICE_CDROM ){
+    if (diskdef->device != VIR_DOMAIN_DISK_DEVICE_CDROM) {
         virReportError(VIR_ERR_INVALID_ARG, "%s",
                            _("bistream disk file should be CDROM"));
         return -1;
     }
 
     bit_file_src_path = diskdef->src->path;
-    if(!virFileIsRegular(bit_file_src_path)) {
+    if (!virFileIsRegular(bit_file_src_path)) {
         virReportError(VIR_ERR_INVALID_ARG,
                            _("bistream disk file path is not a regular file %1$s"),
                            bit_file_src_path);
@@ -657,18 +657,18 @@ int virSFVMMonitorProcessDisk(virDomainDef *vmdef, const char* bit_bin_file_in_l
     }
     bit_file_dst_path = g_strdup_printf("%s/%s", FPGA_BITSTREAM_LIB, bit_bin_file_in_lib);
 
-    if(sfvm_copyfile(bit_file_src_path, bit_file_dst_path) < 0) {
+    if (sfvm_copyfile(bit_file_src_path, bit_file_dst_path) < 0) {
         virReportError(VIR_ERR_INVALID_ARG, "%s",
                            _("copy bitstream to firmware failed"));
         return -1;
-    } 
+    }
     VIR_DEBUG(("copy file from %s to %s"), bit_file_src_path, bit_file_dst_path);
 
     return 0;
 
 }
 
-// write FPGA flag 
+// write FPGA flag
 int
 virSFVMMonitorProcessFPGAFlags(virCaps* caps ATTRIBUTE_UNUSED,
                                int write_flag)
@@ -687,11 +687,11 @@ virSFVMMonitorProcessFPGAFlags(virCaps* caps ATTRIBUTE_UNUSED,
     }
 
     fwrite(&write_flag, sizeof(int), 1, fh);
-    if(ferror(fh)){
+    if (ferror(fh)) {
         ret = -1;
-        VIR_ERROR("Failed writing flag %d to file %s", write_flag, FPGA_MANAGER_FLAG);
+        VIR_ERROR(_("Failed writing flag %1$d to file %2$s"), write_flag, FPGA_MANAGER_FLAG);
         goto cleanup;
-    } else{
+    } else {
         VIR_DEBUG("Success writing flag %d to file %s", write_flag, FPGA_MANAGER_FLAG);
     }
 
@@ -726,7 +726,7 @@ virSFVMMonitorProcessFPGAFirmware(virCaps* caps ATTRIBUTE_UNUSED,
 
     content_len = strlen(content) + 1;
 
-    if (content_len != write(fd, content, content_len)) {
+    if (content_len != safewrite(fd, content, content_len)) {
         ret = -1;
         goto cleanup;
     }
@@ -734,7 +734,7 @@ virSFVMMonitorProcessFPGAFirmware(virCaps* caps ATTRIBUTE_UNUSED,
     ret = 1;
 
  cleanup:
-    if (close(fd) < 0) {
+    if (VIR_CLOSE(fd) < 0) {
         virReportSystemError(errno, _("failed to close file %d"), (fd));
     }
     ret = 1;
@@ -755,23 +755,23 @@ virSFVMMonitorCreateVM(virCHDriver *driver,
         return -1;
     }
     // copy bitstream file to /lib/firmware
-    if(virSFVMMonitorProcessDisk(vmdef, bit_bin_file_in_lib)) {
+    if (virSFVMMonitorProcessDisk(vmdef, bit_bin_file_in_lib)) {
         return -1;
     }
     // enable decoupling
-    if( virSFVMCapsWriteDevMem(driver->caps, FPGA_BRIDGE_0_REGBASE, 1) != 
+    if (virSFVMCapsWriteDevMem(driver->caps, FPGA_BRIDGE_0_REGBASE, 1) !=
             VIR_CONNECT_RW_DEVMEM_STATUS_SUCESS) {
         return -1;
     }
 
     // configure as partial
-    if(virSFVMMonitorProcessFPGAFlags(driver->caps, 1) < 0 ){
+    if (virSFVMMonitorProcessFPGAFlags(driver->caps, 1) < 0) {
         virReportError(VIR_ERR_INTERNAL_ERROR, "%s",
                        _("failed to configure FPGA flag"));
         return -1;
     }
     // echo bitstream file name to firmware
-    if(virSFVMMonitorProcessFPGAFirmware(driver->caps, bit_bin_file_in_lib) < 0 ){
+    if (virSFVMMonitorProcessFPGAFirmware(driver->caps, bit_bin_file_in_lib) < 0) {
         virReportError(VIR_ERR_INTERNAL_ERROR, "%s",
                        _("failed to configure FPGA firmware"));
         return -1;
@@ -779,7 +779,7 @@ virSFVMMonitorCreateVM(virCHDriver *driver,
 
 
     // diable decoupling
-    if( virSFVMCapsWriteDevMem(driver->caps, FPGA_BRIDGE_0_REGBASE, 0) <
+    if (virSFVMCapsWriteDevMem(driver->caps, FPGA_BRIDGE_0_REGBASE, 0) <
             VIR_CONNECT_RW_DEVMEM_STATUS_SUCESS) {
         return -1;
     }
@@ -821,4 +821,4 @@ virSFVMProcessStart(virCHDriver *driver,
 
  err:
     return ret;
-}                  
+}
